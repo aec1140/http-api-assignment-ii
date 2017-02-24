@@ -70,9 +70,6 @@ const onRequest = (request, response) => {
       } else if (parsedUrl.pathname === '/getUsers') {
         //if get users, send user object back
         jsonHandler.getUsers(request, response);
-      } else if (parsedUrl.pathname === '/updateUser') {
-        //if update user, change our user object
-        jsonHandler.updateUser(request, response);
       } else {
         //if not found, send 404 message
         jsonHandler.notFound(request, response);
