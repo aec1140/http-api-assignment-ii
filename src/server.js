@@ -57,7 +57,6 @@ const onRequest = (request, response) => {
   //check the request method (get, head, post, etc)
   switch (request.method) {
     case 'POST':
-      console.log('Adding');
       handlePost(request, response, parsedUrl);
       break;
     case 'GET':

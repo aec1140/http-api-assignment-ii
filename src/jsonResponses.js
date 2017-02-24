@@ -1,9 +1,4 @@
 const crypto = require('crypto');
-
-// Note this object is purely in memory
-// When node shuts down this will be cleared.
-// Same when your heroku app shuts down from inactivity
-// We will be working with databases in the next few weeks.
 const users = {};
 
 let etag = crypto.createHash('sha1').update(JSON.stringify(users));
@@ -12,10 +7,6 @@ let digest = etag.digest('hex');
 //function to respond with a json object
 //takes request, response, status code and object to send
 const respondJSON = (request, response, status, object) => {
-  //object for our headers
-  //Content-Type for json
-  //etag to version response 
-  //etag is a unique versioning number of an object
   const headers = {
     'Content-Type': 'application/json',
     etag: digest,
@@ -52,11 +43,6 @@ const getUsers = (request, response) => {
     users,
   };
 
-  //check the client's if-none-match header to see the version
-  //number the client is returning (from etag)
-  //If the version number (originally set by the server in etag)
-  //is the same as our current one, then send a 304
-  //304 cannot have a body in it.
   if (request.headers['if-none-match'] === digest) {
     //return 304 response without message 
     //304 is not modified and cannot have a body field
@@ -71,11 +57,7 @@ const getUsers = (request, response) => {
 // get meta info about user object
 // should calculate a 200 or 304 based on etag
 const getUsersMeta = (request, response) => {
-  //check the client's if-none-match header to see the version
-  //number the client is returning (from etag)
-  //If the version number (originally set by the server in etag)
-  //is the same as our current one, then send a 304
-  //304 cannot have a body in it.
+  
   if (request.headers['if-none-match'] === digest) {
     return respondJSONMeta(request, response, 304);
   }
@@ -109,10 +91,6 @@ const addUser = (request, response, body) => {
     message: 'Name and age are both required.',
   };
 
-  //check to make sure we have both fields
-  //We might want more validation than just checking if they exist
-  //This could easily be abused with invalid types (such as booleans, numbers, etc)
-  //If either are missing, send back an error message as a 400 badRequest
   if (!body.name || !body.age) {
     responseJSON.id = 'missingParams';
     return respondJSON(request, response, 400, responseJSON);

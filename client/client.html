@@ -32,13 +32,6 @@
     const handleResponse = (xhr, parseResponse) => {
       const content = document.querySelector('#content');
       
-      //MAKE SURE DISABLE CACHE IS UNCHECKED
-      //printing the etag for version number of this response
-      console.log(xhr.getResponseHeader ('etag'));
-      
-      //Check network tag for real status code
-      console.log(xhr.status);
-      
       //depending on which headers are used
       //The browser will either re-fire a 200 or will show a 304.
       switch(xhr.status) {
@@ -101,15 +94,6 @@
       //set our function to handle the response
       xhr.onload = () => handleResponse(xhr, true);
       
-      //build our x-www-form-urlencoded format. Without ajax the 
-      //browser would do this automatically but it forcefully changes pages
-      //which we don't want.
-      //The format is the same as query strings, so key=value&key2=value2
-      //The 'name' fields from the inputs are the variable names sent to
-      //the server. 
-      //So ours might look like  name=test&age=22
-      //Again the 'name' fields in the form are the variable names in the string
-      //and the variable names the server will look for.
       const formData = `name=${nameField.value}&age=${ageField.value}`;
       
       //send our request with the data
@@ -132,11 +116,7 @@
       const xhr = new XMLHttpRequest();
       //setup connect using the selected method and url
       xhr.open(method, url);
-      //set accept header in request to application/json
-      //The accept header is a comma separated list of
-      //accepted response types in order of preference
-      //from first to last. You only need to send one
-      //but you can send many, separated by commas.
+      
       xhr.setRequestHeader('Accept', 'application/json');
 
       //if get request or head request
