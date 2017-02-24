@@ -84,27 +84,6 @@ const getUsersMeta = (request, response) => {
   return respondJSONMeta(request, response, 200);
 };
 
-//function just to update our object and recalculate etag
-const updateUser = (request, response) => {
-  //change to make to user
-  //This is just a dummy object for example
-  const newUser = {
-    createdAt: Date.now(),
-  };
-
-  // modifying our dummy object
-  // just indexing by time for now
-  users[newUser.createdAt] = newUser;
-  
-  //creating a new hash object 
-  etag = crypto.createHash('sha1').update(JSON.stringify(users));
-  //recalculating the hash digest for etag
-  digest = etag.digest('hex');
-
-  //return a 201 created status
-  return respondJSON(request, response, 201, newUser);
-};
-
 // function for 404 not found requests with message
 const notFound = (request, response) => {
   //create error message for response
@@ -177,7 +156,6 @@ module.exports = {
   addUser,
   getUsers,
   getUsersMeta,
-  updateUser,
   notFound,
   notFoundMeta,
 };
