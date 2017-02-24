@@ -48,6 +48,9 @@
         case 201: //if created
           content.innerHTML = '<b>Create</b>';
           break;
+        case 204: //updated (no response back from server)
+          content.innerHTML = '<b>Updated (No Content)</b>';
+          return;
         case 304: //if not modified
           //THIS may only fire under certain circumstances
           //Often a 200 will fire because this will tell the
@@ -69,7 +72,7 @@
       if(parseResponse) {
         //parse the object and print it
         const obj = JSON.parse(xhr.response);
-        console.dir(obj);
+        parseJSON(xhr, obj);
       } else {
         console.log('received');
       }
