@@ -1,7 +1,5 @@
 const fs = require('fs'); // pull in the file system module
-
-const index = fs.readFileSync(`${__dirname}/../client/client.html`);
-const css = fs.readFileSync(`${__dirname}/../client/style.css`);
+const crypto = require('crypto');
 
 // Note this object is purely in memory
 // When node shuts down this will be cleared.
@@ -9,10 +7,23 @@ const css = fs.readFileSync(`${__dirname}/../client/style.css`);
 // We will be working with databases in the next few weeks.
 const users = {};
 
+let etag = crypto.createHash('sha1').update(JSON.stringify(users));
+let digest = etag.digest('hex');
+
 //function to respond with a json object
 //takes request, response, status code and object to send
 const respondJSON = (request, response, status, object) => {
-  response.writeHead(status, { 'Content-Type': 'application/json' });
+  //object for our headers
+  //Content-Type for json
+  //etag to version response 
+  //etag is a unique versioning number of an object
+  const headers = {
+    'Content-Type': 'application/json',
+    etag: digest,
+  };
+  
+  //send response with json object
+  response.writeHead(status, headers);
   response.write(JSON.stringify(object));
   response.end();
 };
@@ -20,17 +31,97 @@ const respondJSON = (request, response, status, object) => {
 //function to respond without json body
 //takes request, response and status code
 const respondJSONMeta = (request, response, status) => {
-  response.writeHead(status, { 'Content-Type': 'application/json' });
+  //object for our headers
+  //Content-Type for json
+  //etag to version response 
+  //etag is a unique versioning number of an object
+  const headers = {
+    'Content-Type': 'application/json',
+    etag: digest,
+  };
+
+  //send response without json object, just headers
+  response.writeHead(status, headers);
   response.end();
 };
 
-//return user object as JSON
+// get user object
+// should calculate a 200 or 304 based on etag
 const getUsers = (request, response) => {
+  //json object to send
   const responseJSON = {
     users,
   };
 
-  respondJSON(request, response, 200, responseJSON);
+  //check the client's if-none-match header to see the version
+  //number the client is returning (from etag)
+  //If the version number (originally set by the server in etag)
+  //is the same as our current one, then send a 304
+  //304 cannot have a body in it.
+  if (request.headers['if-none-match'] === digest) {
+    //return 304 response without message 
+    //304 is not modified and cannot have a body field
+    //304 will tell the browser to pull from cache instead
+    return respondJSONMeta(request, response, 304);
+  }
+
+  //return 200 with message
+  return respondJSON(request, response, 200, responseJSON);
+};
+
+// get meta info about user object
+// should calculate a 200 or 304 based on etag
+const getUsersMeta = (request, response) => {
+  //check the client's if-none-match header to see the version
+  //number the client is returning (from etag)
+  //If the version number (originally set by the server in etag)
+  //is the same as our current one, then send a 304
+  //304 cannot have a body in it.
+  if (request.headers['if-none-match'] === digest) {
+    return respondJSONMeta(request, response, 304);
+  }
+
+  //return 200 without message, just the meta data
+  return respondJSONMeta(request, response, 200);
+};
+
+//function just to update our object and recalculate etag
+const updateUser = (request, response) => {
+  //change to make to user
+  //This is just a dummy object for example
+  const newUser = {
+    createdAt: Date.now(),
+  };
+
+  // modifying our dummy object
+  // just indexing by time for now
+  users[newUser.createdAt] = newUser;
+  
+  //creating a new hash object 
+  etag = crypto.createHash('sha1').update(JSON.stringify(users));
+  //recalculating the hash digest for etag
+  digest = etag.digest('hex');
+
+  //return a 201 created status
+  return respondJSON(request, response, 201, newUser);
+};
+
+// function for 404 not found requests with message
+const notFound = (request, response) => {
+  //create error message for response
+  const responseJSON = {
+    message: 'The page you are looking for was not found.',
+    id: 'notFound',
+  };
+
+  //return a 404 with an error message
+  respondJSON(request, response, 404, responseJSON);
+};
+
+// function for 404 not found without message
+const notFoundMeta = (request, response) => {
+  //return a 404 without an error message
+  respondJSONMeta(request, response, 404);
 };
 
 //function to add a user from a POST body
@@ -51,7 +142,10 @@ const addUser = (request, response, body) => {
 
   //default status code to 201 created
   let responseCode = 201;
-
+  
+  console.dir(users);
+  console.log(body.name);
+  
   //if that user's name already exists in our object
   //then switch to a 204 updated status
   if (users[body.name]) {
@@ -62,8 +156,11 @@ const addUser = (request, response, body) => {
   }
 
   //add or update fields for this user name
+  console.dir(users);
   users[body.name].name = body.name;
   users[body.name].age = body.age;
+  
+  console.dir(users);
 
   //if response is created, then set our created message
   //and sent response with a message
@@ -78,6 +175,10 @@ const addUser = (request, response, body) => {
 };
 
 module.exports = {
-  getUsers,
   addUser,
+  getUsers,
+  getUsersMeta,
+  updateUser,
+  notFound,
+  notFoundMeta,
 };

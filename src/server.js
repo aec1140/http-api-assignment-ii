@@ -49,37 +49,47 @@ const handlePost = (request, response, parsedUrl) => {
   }
 };
 
-//handle GET requests
-const handleGet = (request, response, parsedUrl) => {
-  //route to correct method based on url
-  if (parsedUrl.pathname === '/style.css') {
-    htmlHandler.getCSS(request, response);
-  } else if (parsedUrl.pathname === '/getUsers') {
-    jsonHandler.getUsers(request, response);
-  } else {
-    htmlHandler.getIndex(request, response);
-  }
-  
-  switch (parsedUrl.pathname) {
-    case '/style.css':
-      htmlHandler.getCSS(request, response);
-      break;
-    case '/getUsers':
-      
-  }
-};
-
 const onRequest = (request, response) => {
   //parse url into individual parts
   //returns an object of url parts by name
   const parsedUrl = url.parse(request.url);
-
-  //check if method was POST, otherwise assume GET 
-  //for the sake of this example
-  if (request.method === 'POST') {
-    handlePost(request, response, parsedUrl);
-  } else {
-    handleGet(request, response, parsedUrl);
+  
+  //check the request method (get, head, post, etc)
+  switch (request.method) {
+    case 'POST':
+      console.log('Adding');
+      handlePost(request, response, parsedUrl);
+      break;
+    case 'GET':
+      if (parsedUrl.pathname === '/') {
+        //if homepage, send index
+        htmlHandler.getIndex(request, response);
+      } else if (parsedUrl.pathname === '/style.css') {
+        //if stylesheet, send stylesheet
+        htmlHandler.getCSS(request, response);
+      } else if (parsedUrl.pathname === '/getUsers') {
+        //if get users, send user object back
+        jsonHandler.getUsers(request, response);
+      } else if (parsedUrl.pathname === '/updateUser') {
+        //if update user, change our user object
+        jsonHandler.updateUser(request, response);
+      } else {
+        //if not found, send 404 message
+        jsonHandler.notFound(request, response);
+      }
+      break;
+    case 'HEAD':
+      if (parsedUrl.pathname === '/getUsers') {
+        //if get users, send meta data back with etag
+        jsonHandler.getUsersMeta(request, response);
+      } else {
+        //if not found send 404 without body
+        jsonHandler.notFoundMeta(request, response);
+      }
+      break;
+    default:
+      //send 404 in any other case
+      jsonHandler.notFound(request, response);
   }
 };
 

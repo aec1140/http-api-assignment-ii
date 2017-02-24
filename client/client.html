@@ -102,28 +102,40 @@
       return false;
     };
 
-    const sendGet = (e, urlField, methodSelect) => {
-      const url = urlField.options[urlField.selectedIndex].value;
-      const method = methodSelect.options[methodSelect.selectedIndex].value;
+    //function to send request
+    const requestUpdate = (e, userForm) => {
+      //grab url field 
+      const url = userForm.querySelector('#urlField').value;
+      //grab method selected
+      const method = userForm.querySelector('#methodSelect').value;
       
-      //create a new xhr (ajax) request. 
-      //Remember that these are ASYNCHRONOUS
+      //create a new AJAX request (asynchronous)
       const xhr = new XMLHttpRequest();
-      //set the xhr to a GET request to a certain URL
+      //setup connect using the selected method and url
       xhr.open(method, url);
-      //Set the accept headers to the desired response mime type
-      //Server does NOT have to support this. It is a gentle request.
-      xhr.setRequestHeader ("Accept", 'application/json');
+      //set accept header in request to application/json
+      //The accept header is a comma separated list of
+      //accepted response types in order of preference
+      //from first to last. You only need to send one
+      //but you can send many, separated by commas.
+      xhr.setRequestHeader('Accept', 'application/json');
 
-      //When the xhr loads, call handleResponse and pass the xhr object
-      xhr.onload = () => handleResponse(xhr);
-
-      //send our ajax request to the server
+      //if get request or head request
+      if(method == 'get') {
+        //set onload to parse request and get json message
+        xhr.onload = () => handleResponse(xhr, true);
+      } else {
+        //set onload to check meta data and NOT message
+        //There are no body responses in a head request
+        xhr.onload = () => handleResponse(xhr, false);
+      }
+      
+      //send ajax request
       xhr.send();
       
-      //prevent the browser's default action (to send the form on its own)
+      //cancel browser's default action
       e.preventDefault();
-      //return false to prevent the browser from trying to change page
+      //return false to prevent page redirection from a form
       return false;
     };
 
@@ -131,16 +143,14 @@
       //grab form
       const nameForm = document.querySelector('#nameForm');
       const userForm = document.querySelector('#userForm');
-      const urlField = document.querySelector('#urlField');
-      const methodSelect = document.querySelector('#methodSelect');
       
-      //create handler
+      //create handlers
       const addUser = (e) => sendPost(e, nameForm);
-      const getUser = (e) => sendGet(e, urlField, methodSelect);
+      const getUsers = (e) => requestUpdate(e, userForm);
       
       //attach submit event (for clicking submit or hitting enter)
       nameForm.addEventListener('submit', addUser);
-      userForm.addEventListener('submit', getUser);
+      userForm.addEventListener('submit', getUsers);
     };
 
     window.onload = init;
