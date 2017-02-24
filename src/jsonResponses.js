@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+
 const users = {};
 
 let etag = crypto.createHash('sha1').update(JSON.stringify(users));
