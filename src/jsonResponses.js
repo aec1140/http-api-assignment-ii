@@ -142,9 +142,6 @@ const addUser = (request, response, body) => {
   //default status code to 201 created
   let responseCode = 201;
   
-  console.dir(users);
-  console.log(body.name);
-  
   //if that user's name already exists in our object
   //then switch to a 204 updated status
   if (users[body.name]) {
@@ -155,15 +152,18 @@ const addUser = (request, response, body) => {
   }
 
   //add or update fields for this user name
-  console.dir(users);
   users[body.name].name = body.name;
   users[body.name].age = body.age;
-  
-  console.dir(users);
 
   //if response is created, then set our created message
   //and sent response with a message
   if (responseCode === 201) {
+    //creating a new hash object 
+    etag = crypto.createHash('sha1').update(JSON.stringify(users));
+    
+    //recalculating the hash digest for etag
+    digest = etag.digest('hex')
+    
     responseJSON.message = 'Created Successfully';
     return respondJSON(request, response, responseCode, responseJSON);
   }
