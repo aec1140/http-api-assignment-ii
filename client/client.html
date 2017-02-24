@@ -72,10 +72,11 @@
       if(parseResponse) {
         //parse the object and print it
         const obj = JSON.parse(xhr.response);
-        parseJSON(xhr, obj);
       } else {
         console.log('received');
       }
+      
+      parseJSON(xhr, obj);
     };
 
     //function to send our post request
