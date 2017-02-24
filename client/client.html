@@ -68,15 +68,7 @@
           break;
       }
       
-      //if we are expecting a response body (not in a 304 or head request)
-      if(parseResponse) {
-        //parse the object and print it
-        const obj = JSON.parse(xhr.response);
-      } else {
-        console.log('received');
-      }
-      
-      parseJSON(xhr, obj);
+      parseJSON(xhr, content);
     };
 
     //function to send our post request
