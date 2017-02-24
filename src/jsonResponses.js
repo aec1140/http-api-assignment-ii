@@ -1,4 +1,3 @@
-const fs = require('fs'); // pull in the file system module
 const crypto = require('crypto');
 
 // Note this object is purely in memory
